@@ -31,6 +31,24 @@ export const sendPost = createAsyncThunk<IPost, Omit<IPost, "id">>(
   }
 );
 
+export const editPost = createAsyncThunk<IPost, IPost>(
+  "posts/editPost",
+  async (post) => {
+    const response = await fetch(
+      `https://jsonplaceholder.typicode.com/posts/${post.id}`,
+      {
+        method: "PUT",
+        body: JSON.stringify(post),
+        headers: {
+          "Content-Type": "application/json; charset=UTF-8",
+        },
+      }
+    );
+
+    return (await response.json()) as IPost;
+  }
+);
+
 interface IPostsState {
   status: IStatus;
   error: any;
@@ -66,6 +84,16 @@ const postsSlice = createSlice({
 
     builder.addCase(sendPost.fulfilled, (state, action) => {
       state.data.push(action.payload);
+    });
+
+    builder.addCase(editPost.fulfilled, (state, action) => {
+      const { id, title, body } = action.payload;
+      const existingPost = state.data.find((post) => post.id === id);
+
+      if (existingPost) {
+        existingPost.title = title;
+        existingPost.body = body;
+      }
     });
   },
 });

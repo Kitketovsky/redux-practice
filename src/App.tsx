@@ -1,8 +1,8 @@
 import { useAppDispatch, useAppSelector } from "./redux/hooks";
-import { useEffect } from "react";
+import React, { useEffect } from "react";
 import { fetchPosts, getPostsStatusSelector } from "./redux/slices/postsSlice";
 import { Posts } from "./components/Posts";
-import {Form} from "./components/Form";
+import { Form } from "./components/Form";
 
 function App() {
   const dispatch = useAppDispatch();

@@ -1,11 +1,26 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useAppDispatch } from "../redux/hooks";
-import { sendPost } from "../redux/slices/postsSlice";
+import { editPost, sendPost } from "../redux/slices/postsSlice";
+import { IPost } from "../types/IPost";
 
-export const Form = () => {
-  const [title, setTitle] = useState("");
-  const [body, setBody] = useState("");
-  const [userId, setUserId] = useState(1);
+interface Props {
+  post?: IPost;
+}
+
+export const Form: React.FC<Props> = ({ post }) => {
+  const [title, setTitle] = useState(post?.title ?? "");
+  const [body, setBody] = useState(post?.body ?? "");
+  const [userId, setUserId] = useState(post?.userId ?? 1);
+
+  useEffect(() => {
+    if (post) {
+      const { title, body, userId } = post;
+
+      setTitle(title);
+      setBody(body);
+      setUserId(userId);
+    }
+  }, [post]);
 
   const [isLoading, setIsLoading] = useState(false);
 
@@ -19,12 +34,16 @@ export const Form = () => {
     try {
       setIsLoading(true);
       event.preventDefault();
-      await dispatch(sendPost({ title, body, userId })).unwrap();
+      if (post) {
+        await dispatch(editPost({ title, body, userId, id: post.id })).unwrap();
+      } else {
+        await dispatch(sendPost({ title, body, userId })).unwrap();
+        setTitle("");
+        setBody("");
+        setUserId(1);
+      }
     } finally {
       setIsLoading(false);
-      setTitle("");
-      setBody("");
-      setUserId(1);
     }
   }
 
@@ -55,19 +74,21 @@ export const Form = () => {
         />
       </label>
 
-      <label htmlFor="userId">
-        UserId
-        <input
-          id="userId"
-          type="number"
-          value={userId}
-          onChange={(event) => setUserId(Number(event.target.value))}
-          disabled={isLoading}
-        />
-      </label>
+      {!post && (
+        <label htmlFor="userId">
+          UserId
+          <input
+            id="userId"
+            type="number"
+            value={userId}
+            onChange={(event) => setUserId(Number(event.target.value))}
+            disabled={isLoading}
+          />
+        </label>
+      )}
 
       <button type="submit" disabled={!canSend}>
-        Send Post
+        {post ? "Edit" : "Send"} Post
       </button>
     </form>
   );
