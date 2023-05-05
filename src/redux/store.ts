@@ -1,13 +1,13 @@
 import { configureStore } from "@reduxjs/toolkit";
 import postsReducer from "./slices/postsSlice";
-import hiLoggerEnhancer from "./enhancers/hiLoggerEnhancer";
+import { hiLoggerMiddleware } from "./middleware/hiLoggerMiddleware";
 
 const store = configureStore({
   reducer: {
     posts: postsReducer,
   },
-  // @ts-ignore
-  // enhancers: [hiLoggerEnhancer],
+  middleware: (getDefaultMiddleware) =>
+    getDefaultMiddleware().concat(hiLoggerMiddleware),
 });
 
 export type RootState = ReturnType<typeof store.getState>;
