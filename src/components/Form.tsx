@@ -5,7 +5,7 @@ import { IPost } from "../types/IPost";
 
 interface Props {
   post?: IPost;
-  setPostToEdit: (post: IPost | null) => void;
+  setPostToEdit?: (post: IPost | null) => void;
 }
 
 export const Form: React.FC<Props> = ({ post, setPostToEdit }) => {
@@ -35,7 +35,7 @@ export const Form: React.FC<Props> = ({ post, setPostToEdit }) => {
     try {
       setIsLoading(true);
       event.preventDefault();
-      if (post) {
+      if (post && setPostToEdit) {
         await dispatch(editPost({ title, body, userId, id: post.id })).unwrap();
         setPostToEdit(null);
       } else {
