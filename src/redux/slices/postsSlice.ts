@@ -59,13 +59,13 @@ interface IPostsInitialState {
   error: any;
 }
 
-// 'createEntityAdapter' is used for creating normalized state of { ids: [], entities: [] }
-// where you can get an item by referencing it with its ID
+// "createEntityAdapter" is used for creating normalized state of { ids: [], entities: [] } where you can get an item by referencing it with its ID
+// "Normalization" means no duplication of data, and keeping items stored in a lookup table by item ID
 const postsAdapter = createEntityAdapter<IPost>({
   sortComparer: (a, b) => a.userId - b.userId,
 });
 
-// 'getInitialState' method merges { ids: [], entities: [] } with the object you passed as an argument
+// "getInitialState" method merges { ids: [], entities: [] } with the object you passed as an argument
 const initialState = postsAdapter.getInitialState<IPostsInitialState>({
   status: "idle",
   error: null,
