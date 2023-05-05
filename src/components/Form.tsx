@@ -5,9 +5,10 @@ import { IPost } from "../types/IPost";
 
 interface Props {
   post?: IPost;
+  setPostToEdit: (post: IPost | null) => void;
 }
 
-export const Form: React.FC<Props> = ({ post }) => {
+export const Form: React.FC<Props> = ({ post, setPostToEdit }) => {
   const [title, setTitle] = useState(post?.title ?? "");
   const [body, setBody] = useState(post?.body ?? "");
   const [userId, setUserId] = useState(post?.userId ?? 1);
@@ -36,6 +37,7 @@ export const Form: React.FC<Props> = ({ post }) => {
       event.preventDefault();
       if (post) {
         await dispatch(editPost({ title, body, userId, id: post.id })).unwrap();
+        setPostToEdit(null);
       } else {
         await dispatch(sendPost({ title, body, userId })).unwrap();
         setTitle("");

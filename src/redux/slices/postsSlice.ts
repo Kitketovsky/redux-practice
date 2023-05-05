@@ -1,4 +1,9 @@
-import { createAsyncThunk, createSlice, nanoid } from "@reduxjs/toolkit";
+import {
+  createAsyncThunk,
+  createSlice,
+  nanoid,
+  createEntityAdapter,
+} from "@reduxjs/toolkit";
 import { RootState } from "../store";
 import { IPost } from "../../types/IPost";
 import { IStatus } from "../../types/IStatus";
@@ -49,17 +54,22 @@ export const editPost = createAsyncThunk<IPost, IPost>(
   }
 );
 
-interface IPostsState {
+interface IPostsInitialState {
   status: IStatus;
   error: any;
-  data: IPost[];
 }
 
-const initialState: IPostsState = {
+// 'createEntityAdapter' is used for creating normalized state of { ids: [], entities: [] }
+// where you can get an item by referencing it with its ID
+const postsAdapter = createEntityAdapter<IPost>({
+  sortComparer: (a, b) => a.userId - b.userId,
+});
+
+// 'getInitialState' method merges { ids: [], entities: [] } with the object you passed as an argument
+const initialState = postsAdapter.getInitialState<IPostsInitialState>({
   status: "idle",
   error: null,
-  data: [],
-};
+});
 
 const postsSlice = createSlice({
   name: "posts",
@@ -77,18 +87,16 @@ const postsSlice = createSlice({
         state.error = action.error.message;
       })
       .addCase(fetchPosts.fulfilled, (state, action) => {
-        state.data = action.payload;
+        postsAdapter.upsertMany(state, action.payload);
         state.status = "fulfilled";
         state.error = null;
       });
 
-    builder.addCase(sendPost.fulfilled, (state, action) => {
-      state.data.push(action.payload);
-    });
+    builder.addCase(sendPost.fulfilled, postsAdapter.addOne);
 
     builder.addCase(editPost.fulfilled, (state, action) => {
       const { id, title, body } = action.payload;
-      const existingPost = state.data.find((post) => post.id === id);
+      const existingPost = state.entities[id];
 
       if (existingPost) {
         existingPost.title = title;
@@ -98,7 +106,12 @@ const postsSlice = createSlice({
   },
 });
 
+export const {
+  selectAll: getPostsSelector,
+  selectById: getPostById,
+  selectIds: getPostsIds,
+} = postsAdapter.getSelectors<RootState>((state) => state.posts);
+
 export const getPostsStatusSelector = (state: RootState) => state.posts.status;
-export const getPostsSelector = (state: RootState) => state.posts.data;
 
 export default postsSlice.reducer;
