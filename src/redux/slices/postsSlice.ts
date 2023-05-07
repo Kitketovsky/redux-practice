@@ -3,6 +3,7 @@ import {
   createSlice,
   nanoid,
   createEntityAdapter,
+  createSelector,
 } from "@reduxjs/toolkit";
 import { RootState } from "../store";
 import { IPost } from "../../types/IPost";
@@ -75,7 +76,7 @@ const postsSlice = createSlice({
   name: "posts",
   initialState,
   reducers: {},
-  // To handle other actions (thinks) that weren't defined as part of this slice,
+  // To handle other actions (thunks) that weren't defined as part of this slice,
   // we need to use 'extraReducers'
   extraReducers: (builder) => {
     builder
@@ -108,6 +109,24 @@ const postsSlice = createSlice({
 
 export const { selectById: getPostById, selectIds: getPostsIds } =
   postsAdapter.getSelectors<RootState>((state) => state.posts);
+
+// Memoized selector
+// When we want to derive specific data from our state, in most cases we probably 'filter' it or 'map' it.
+// But there is a problem. 'useSelector' hook will *ALWAYS* cause the component to re-render after *EVERY* action,
+// because it's returning a new array reference => 'map' and 'filter' return a new array.
+
+// That's why we need to memoize the derived data based on particular inputs and occasions
+// => get new array when the main data has changed.
+
+// !!! Memoized selectors are only helpful when you actually derive additional values from the original data.
+// !!! If you only looking up and returning an existing value, you can keep the selector as a plain function.
+export const getPostsWithUserEight = createSelector(
+  // Return values of 'input selectors' in the first argument will be as arguments in 'output selector'
+  // => if values of 'input selectors' changed, recalculate the value of the 'output selector'
+  (state: RootState) => state.posts.entities,
+  (entities) =>
+    Object.values(entities).filter((post) => (post as IPost).userId === 8)
+);
 
 export const getPostsStatusSelector = (state: RootState) => state.posts.status;
 
